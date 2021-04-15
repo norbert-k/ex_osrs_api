@@ -11,7 +11,8 @@ defmodule ExOsrsApi.MixProject do
       name: "ExOsrsApi",
       docs: [
         extras: ["README.md"]
-      ]
+      ],
+      dialyzer: [flags: [:error_handling, :race_conditions, :underspecs]]
     ]
   end
 
@@ -31,7 +32,7 @@ defmodule ExOsrsApi.MixProject do
       {:fuse, "~> 2.4"},
       {:ex_rated, "~> 1.2"},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
   end
 end

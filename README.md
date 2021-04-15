@@ -1,6 +1,11 @@
 # ExOsrsApi
 Old-school Runescape Highscore API Wrapper
 
+## Todo
+
+1) Improve documentation
+2) Mock API responses for testing
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
@@ -16,10 +21,24 @@ end
 
 ## Examples
 
+### module examples
+```elixir
+defmodule MyService do
+  alias ExOsrsApi.OsrsApi
+
+  # Get regular highscore data
+  def get_data(username) do
+    OsrsApi.get_highscores(username, :regular)
+  end
+end
+```
+
 ### iex examples
 
 ```elixir
 # Get regular (non ironman, deadman mode etc... highscores)
+iex(0)> alias ExOsrsApi.OsrsApi
+
 iex(1)> OsrsApi.get_highscores("BstnDynamics", :regular)
 
 iex(2)> {:ok,

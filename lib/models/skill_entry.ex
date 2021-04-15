@@ -6,11 +6,14 @@ defmodule ExOsrsApi.Models.SkillEntry do
   @enforce_keys [:skill, :rank, :level, :empty]
   defstruct [:skill, :rank, :level, :experience, :empty]
 
+  alias ExOsrsApi.Errors.Error
+  alias ExOsrsApi.Errors.ParsingErrorMetadata
+
   @type t() :: %__MODULE__{
           skill: atom(),
-          rank: non_neg_integer() | nil,
-          level: non_neg_integer() | nil,
-          experience: non_neg_integer() | nil,
+          rank: 1..2_000_000 | nil,
+          level: 0..99 | nil,
+          experience: 0..200_000_000 | nil,
           empty: boolean()
         }
 
@@ -77,7 +80,7 @@ defmodule ExOsrsApi.Models.SkillEntry do
       }}
   """
   @spec new_from_line(atom(), String.t()) ::
-          {:error, String.t()} | {:ok, t()}
+          {:error, Error.t()} | {:ok, t()}
   def new_from_line(skill, line) when is_bitstring(line) do
     case String.split(line, ",", trim: true) do
       [rank, level, experience] ->
@@ -95,7 +98,13 @@ defmodule ExOsrsApi.Models.SkillEntry do
             }
           }
         else
-          :error -> {:error, "Error parsing SkillEntry (skill: #{skill})"}
+          :error ->
+            {:error,
+             Error.new(
+               :parsing_error,
+               "Failed to parse skill_entry",
+               ParsingErrorMetadata.new(Atom.to_string(skill), "Failed to parse skill_entry")
+             )}
         end
 
       ["-1", "-1"] ->
@@ -109,7 +118,12 @@ defmodule ExOsrsApi.Models.SkillEntry do
          }}
 
       _ ->
-        {:error, "Error parsing SkillEntry (skill: #{skill})"}
+        {:error,
+         Error.new(
+           :parsing_error,
+           "Failed to parse skill_entry",
+           ParsingErrorMetadata.new(Atom.to_string(skill), "Failed to parse skill_entry")
+         )}
     end
   end
 end

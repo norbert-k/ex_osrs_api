@@ -2,9 +2,12 @@ defmodule ExOsrsApi.Models.ActivityEntry do
   @enforce_keys [:activity, :rank, :actions, :empty]
   defstruct [:activity, :rank, :actions, :empty]
 
+  alias ExOsrsApi.Errors.Error
+  alias ExOsrsApi.Errors.ParsingErrorMetadata
+
   @type t() :: %__MODULE__{
-          activity: atom(),
-          rank: non_neg_integer() | nil,
+          activity: String.t(),
+          rank: 1..2_000_000 | nil,
           actions: non_neg_integer() | nil,
           empty: boolean()
         }
@@ -14,8 +17,8 @@ defmodule ExOsrsApi.Models.ActivityEntry do
     empty
   end
 
-  @spec new_from_line(atom(), String.t()) ::
-          {:error, String.t()} | {:ok, t()}
+  @spec new_from_line(String.t(), String.t()) ::
+          {:error, Error.t()} | {:ok, t()}
   def new_from_line(activity, line) when is_bitstring(line) do
     case String.split(line, ",", trim: true) do
       ["-1", "-1"] ->
@@ -40,11 +43,22 @@ defmodule ExOsrsApi.Models.ActivityEntry do
             }
           }
         else
-          :error -> {:error, "Error parsing ActivityEntry (activity: #{activity})"}
+          :error ->
+            {:error,
+             Error.new(
+               :parsing_error,
+               "Failed to parse activity_entry",
+               ParsingErrorMetadata.new(activity, "Failed to parse activity_entry")
+             )}
         end
 
       _ ->
-        {:error, "Error parsing ActivityEntry (activity: #{activity})"}
+        {:error,
+         Error.new(
+           :parsing_error,
+           "Failed to parse activity_entry",
+           ParsingErrorMetadata.new(activity, "Failed to parse activity_entry")
+         )}
     end
   end
 end
