@@ -1,4 +1,4 @@
-# ExOsrsApi
+# ExOsrsApi (DEVELOPMENT BRANCH)
 Old-school Runescape Highscore API Wrapper
 
 ## Installation
