@@ -7,15 +7,15 @@ defmodule ExOsrsApi.Application do
 
   @impl true
   def start(_type, _args) do
-    GenServer.start_link(
-      ExRated,
-      [{:timeout, 10_000}, {:cleanup_rate, 10_000}, {:persistent, false}],
-      name: :ex_rated
-    )
+    # GenServer.start_link(
+    #   ExRated,
+    #   [{:timeout, 10_000}, {:cleanup_rate, 10_000}, {:persistent, false}],
+    #   name: :ex_rated
+    # )
 
     children = [
       # Starts a worker by calling: ExOsrsApi.Worker.start_link(arg)
-      # {ExOsrsApi.Worker, arg},
+      # {ExOsrsApi.Worker, arg}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
