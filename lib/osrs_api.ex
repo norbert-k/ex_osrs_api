@@ -169,10 +169,10 @@ defmodule ExOsrsApi.OsrsApi do
       case result do
         nil ->
           Task.shutdown(task, :brutal_kill)
-          {:error, "Timed out"}
+          Error.new(:task_error, "Task timed out")
 
         {:exit, reason} ->
-          {:error, reason}
+          Error.new(:task_error, reason)
 
         {:ok, result} ->
           result
