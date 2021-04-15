@@ -3,11 +3,11 @@ Old-school Runescape Highscore API Wrapper
 
 ## Todo
 
-[ ] Better error handling & error types
-[ ] Configuration `config.ex` support
-[ ] Testing (Mock Osrs API responses)
-[ ] Start `ExRated` in Application tree (`application.ex`)
-[ ] Improve documentation
+1)  Better error handling & error types
+2)  Configuration `config.ex` support
+3)  Testing (Mock Osrs API responses)
+4)  Start `ExRated` in Application tree (`application.ex`)
+5)  Improve documentation
 
 ## Installation
 
