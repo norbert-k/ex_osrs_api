@@ -1,0 +1,61 @@
+defmodule ExOsrsApi.Models.Skills do
+  alias ExOsrsApi.Models.SkillEntry
+
+  defstruct [:data]
+
+  @type t() :: %__MODULE__{
+          data: list(SkillEntry.t())
+        }
+
+  @skills ~w(overall attack defence strength hitpoints ranged prayer magic cooking
+    woodcutting fletching fishing firemaking crafting smithing mining herblore agility
+    thieving slayer farming runecrafting hunter construction)a
+
+  @spec get_all_skills :: list(atom())
+  def get_all_skills() do
+    @skills
+  end
+
+  @spec skill_length :: non_neg_integer
+  def skill_length() do
+    length(@skills)
+  end
+
+  @spec new_from_bitstring(list(String.t())) ::
+          {:error, String.t()} | {:ok, t()}
+  def new_from_bitstring(data) when is_list(data) do
+    skill_data =
+      data
+      |> Enum.with_index()
+      |> Enum.reduce_while({:ok, []}, fn {value, index}, {:ok, acc} ->
+        case SkillEntry.new_from_line(Enum.at(@skills, index), value) do
+          {:ok, entry} -> {:cont, {:ok, [entry | acc]}}
+          {:error, error} -> {:halt, {:error, error}}
+        end
+      end)
+
+    case skill_data do
+      {:ok, data} ->
+        if length(data) == length(@skills) do
+          {:ok,
+           %__MODULE__{
+             data: data |> Enum.reverse()
+           }}
+        else
+          {:error, "Failed to parse skills (invalid length)"}
+        end
+
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
+  @spec get_skill_data(t(), atom()) ::
+          {:error, String.t()} | {:ok, SkillEntry.t()}
+  def get_skill_data(%__MODULE__{data: data}, skill) when is_atom(skill) do
+    case Enum.find(data, fn %SkillEntry{skill: skill} -> skill == skill end) do
+      nil -> {:error, "Skill (#{skill}) not found"}
+      value -> {:ok, value}
+    end
+  end
+end
