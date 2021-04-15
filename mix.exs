@@ -12,7 +12,10 @@ defmodule ExOsrsApi.MixProject do
       docs: [
         extras: ["README.md"]
       ],
-      dialyzer: [flags: [:error_handling, :race_conditions, :underspecs]]
+      dialyzer: [flags: [:error_handling, :race_conditions, :underspecs]],
+      description: description(),
+      package: package(),
+      source_url: "https://github.com/norbert-k/ex_osrs_api"
     ]
   end
 
@@ -33,6 +36,22 @@ defmodule ExOsrsApi.MixProject do
       {:ex_rated, "~> 1.2"},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
+    ]
+  end
+
+  defp description() do
+    "OSRS Old school runescape Highscore API wrapper"
+  end
+
+  defp package() do
+    [
+      # This option is only needed when you don't want to use the OTP application name
+      name: "ExOsrsApi",
+      # These are the default files included in the package
+      files: ~w(lib priv .formatter.exs mix.exs README* readme* LICENSE*
+                license* src),
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/norbert-k/ex_osrs_api"}
     ]
   end
 end
