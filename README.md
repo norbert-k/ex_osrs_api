@@ -1,14 +1,10 @@
-# ExOsrsApi (DEVELOPMENT BRANCH)
+# ExOsrsApi
 Old-school Runescape Highscore API Wrapper
 
 ## Todo
 
-1)  Better error handling & error types
-2)  ~~Configuration `config.ex` support~~
-3)  Testing (Mock Osrs API responses)
-4)  ~~Start `ExRated` in Application tree (`application.ex`)~~
-5)  Improve documentation
-6)  Fuse Configuration
+1) Improve documentation
+2) Mock API responses for testing
 
 ## Installation
 
