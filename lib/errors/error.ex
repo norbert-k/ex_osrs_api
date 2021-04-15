@@ -7,10 +7,16 @@ defmodule ExOsrsApi.Errors.Error do
   alias ExOsrsApi.Errors.RatelimitErrorMetadata
 
   @type t() :: %__MODULE__{
-    type: :http_error | :ratelimit_error | :parsing_error | :update_package_error,
-    message: String.t(),
-    metadata: HttpErrorMetadata.t() | ParsingErrorMetadata.t() | RatelimitErrorMetadata.t() | nil
-  }
+          type:
+            :http_error
+            | :ratelimit_error
+            | :parsing_error
+            | :data_access_error
+            | :update_package_error,
+          message: String.t(),
+          metadata:
+            HttpErrorMetadata.t() | ParsingErrorMetadata.t() | RatelimitErrorMetadata.t() | nil
+        }
 
   @spec new(:http_error, String.t(), HttpErrorMetadata.t()) :: t()
   def new(:http_error, message, %HttpErrorMetadata{} = metadata) do
@@ -43,6 +49,15 @@ defmodule ExOsrsApi.Errors.Error do
   def new(:update_package_error, message) do
     %__MODULE__{
       type: :update_package_error,
+      message: message,
+      metadata: nil
+    }
+  end
+
+  @spec new(:data_access_error, String.t()) :: t()
+  def new(:data_access_error, message) do
+    %__MODULE__{
+      type: :data_access_error,
       message: message,
       metadata: nil
     }

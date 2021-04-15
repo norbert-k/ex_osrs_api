@@ -1,5 +1,7 @@
 defmodule ExOsrsApi.Models.Skills do
   alias ExOsrsApi.Models.SkillEntry
+  alias ExOsrsApi.Errors.Error
+  alias ExOsrsApi.Errors.ParsingErrorMetadata
 
   defstruct [:data]
 
@@ -22,7 +24,7 @@ defmodule ExOsrsApi.Models.Skills do
   end
 
   @spec new_from_bitstring(list(String.t())) ::
-          {:error, String.t()} | {:ok, t()}
+          {:error, Error.t()} | {:ok, t()}
   def new_from_bitstring(data) when is_list(data) do
     skill_data =
       data
@@ -42,7 +44,12 @@ defmodule ExOsrsApi.Models.Skills do
              data: data |> Enum.reverse()
            }}
         else
-          {:error, "Failed to parse skills (invalid length)"}
+          {:error,
+           Error.new(
+             :parsing_error,
+             "Failed to parse skills (invalid length)",
+             ParsingErrorMetadata.new("skills", "Failed to parse skills (invalid length)")
+           )}
         end
 
       {:error, error} ->
@@ -51,10 +58,10 @@ defmodule ExOsrsApi.Models.Skills do
   end
 
   @spec get_skill_data(t(), atom()) ::
-          {:error, String.t()} | {:ok, SkillEntry.t()}
+          {:error, Error.t()} | {:ok, SkillEntry.t()}
   def get_skill_data(%__MODULE__{data: data}, skill) when is_atom(skill) do
     case Enum.find(data, fn %SkillEntry{skill: skill} -> skill == skill end) do
-      nil -> {:error, "Skill (#{skill}) not found"}
+      nil -> {:error, Error.new(:data_access_error, "Skill (#{skill}) not found")}
       value -> {:ok, value}
     end
   end

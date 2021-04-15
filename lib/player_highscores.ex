@@ -1,6 +1,7 @@
 defmodule ExOsrsApi.PlayerHighscores do
   alias ExOsrsApi.Models.Skills
   alias ExOsrsApi.Models.Activities
+  alias ExOsrsApi.Errors.Error
 
   @enforce_keys [:username, :type, :skills, :activities, :empty]
   defstruct [:username, :type, :skills, :activities, :empty]
@@ -23,7 +24,7 @@ defmodule ExOsrsApi.PlayerHighscores do
      }}
   end
 
-  @spec new_from_bitstring(String.t(), atom(), String.t()) :: {:error, String.t()} | {:ok, t()}
+  @spec new_from_bitstring(String.t(), atom(), String.t()) :: {:error, Error.t()} | {:ok, t()}
   def new_from_bitstring(username, type, data)
       when is_bitstring(username) and is_bitstring(data) do
     {skills, activities} =
@@ -62,13 +63,13 @@ defmodule ExOsrsApi.PlayerHighscores do
   end
 
   @spec get_skill_data(t(), atom) ::
-          {:error, String.t()} | {:ok, ExOsrsApi.Models.SkillEntry.t()}
+          {:error, Error.t()} | {:ok, ExOsrsApi.Models.SkillEntry.t()}
   def get_skill_data(%__MODULE__{skills: %Skills{} = skills}, skill) when is_atom(skill) do
     Skills.get_skill_data(skills, skill)
   end
 
   @spec get_activity_data(t(), binary) ::
-          {:error, String.t()} | {:ok, ExOsrsApi.Models.ActivityEntry.t()}
+          {:error, Error.t()} | {:ok, ExOsrsApi.Models.ActivityEntry.t()}
   def get_activity_data(%__MODULE__{activities: activities}, activity)
       when is_bitstring(activity) do
     Activities.get_activity_data(activities, activity)

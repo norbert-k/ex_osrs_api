@@ -1,5 +1,7 @@
 defmodule ExOsrsApi.Models.Activities do
   alias ExOsrsApi.Models.ActivityEntry
+  alias ExOsrsApi.Errors.Error
+  alias ExOsrsApi.Errors.ParsingErrorMetadata
 
   defstruct [:data]
 
@@ -32,7 +34,7 @@ defmodule ExOsrsApi.Models.Activities do
   end
 
   @spec new_from_bitstring(list(String.t())) ::
-          {:error, String.t()} | {:ok, t()}
+          {:error, Error.t()} | {:ok, t()}
   def new_from_bitstring(data) when is_list(data) do
     activity_data =
       data
@@ -52,7 +54,12 @@ defmodule ExOsrsApi.Models.Activities do
              data: data |> Enum.reverse()
            }}
         else
-          {:error, "Failed to parse activities (invalid length)"}
+          {:error,
+           Error.new(
+             :parsing_error,
+             "Failed to parse activities (invalid length)",
+             ParsingErrorMetadata.new("activities", "Failed to parse activities (invalid length)")
+           )}
         end
 
       {:error, error} ->
@@ -64,7 +71,7 @@ defmodule ExOsrsApi.Models.Activities do
           {:error, String.t()} | {:ok, ActivityEntry.t()}
   def get_activity_data(%__MODULE__{data: data}, activity) when is_bitstring(activity) do
     case Enum.find(data, fn %ActivityEntry{activity: activity} -> activity == activity end) do
-      nil -> {:error, "Activity (#{activity}) not found"}
+      nil -> {:error, Error.new(:data_access_error, "Activity (#{activity}) not found")}
       value -> {:ok, value}
     end
   end

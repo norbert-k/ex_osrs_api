@@ -1,6 +1,10 @@
 defmodule ExOsrsApi.OsrsApi do
   use Tesla, only: ~w(get)a, docs: false
+
+  alias ExOsrsApi.Ratelimit
   alias ExOsrsApi.PlayerHighscores
+  alias ExOsrsApi.Errors.Error
+  alias ExOsrsApi.Errors.HttpErrorMetadata
 
   @highscore_types ~w(regular ironman hardcore_ironman ultimate_ironman deadman seasonal tournament)a
 
@@ -20,15 +24,6 @@ defmodule ExOsrsApi.OsrsApi do
     end
   )
 
-  @spec check_ratelimit(atom(), integer(), integer()) :: {:ok, integer()} | {:error, String.t()}
-  defp check_ratelimit(type, timeout, limit)
-       when is_atom(type) and is_integer(timeout) and is_integer(limit) do
-    case ExRated.check_rate("osrs-api-rate-limit-" <> Atom.to_string(type), timeout, limit) do
-      {:ok, value} -> {:ok, value}
-      {:error, limit} -> {:error, "Over the rate limit (max limit: #{limit})"}
-    end
-  end
-
   @spec get_highscores(
           String.t(),
           :deadman
@@ -38,25 +33,51 @@ defmodule ExOsrsApi.OsrsApi do
           | :seasonal
           | :tournament
           | :ultimate_ironman,
-          non_neg_integer(),
-          non_neg_integer()
-        ) :: {:error, String.t()} | {:ok, PlayerHighscores.t()}
-  def get_highscores(username, type, timeout \\ 60_000, limit \\ 60)
+          Ratelimit.t()
+        ) :: {:error, Error.t()} | {:ok, PlayerHighscores.t()}
+  def get_highscores(username, type, ratelimit \\ Ratelimit.new_default)
       when is_bitstring(username) and type in @highscore_types do
-    case check_ratelimit(type, timeout, limit) do
+    case Ratelimit.check_ratelimit(ratelimit, type) do
       {:ok, _} ->
         case create_url(type, username) |> get() do
           {:ok, %Tesla.Env{body: body, status: 200}} ->
             PlayerHighscores.new_from_bitstring(username, type, body)
 
           {:ok, %Tesla.Env{status: 404}} ->
-            {:error, "Not found (username: #{username}, type: #{type})"}
+            {:error,
+             Error.new(
+               :http_error,
+               "404 not found (username: #{username}, type: #{type})",
+               HttpErrorMetadata.new(
+                 404,
+                 "404 not found (username: #{username}, type: #{type})",
+                 []
+               )
+             )}
 
           {:ok, %Tesla.Env{status: status}} when status in [428, 500, 504] ->
-            {:error, "Server error (jagex API offline or ratelimit has kicked in)"}
+            {:error,
+             Error.new(
+               :http_error,
+               "Service offline or ratelimiter has kicked in",
+               HttpErrorMetadata.new(
+                 status,
+                 "Service offline or ratelimiter has kicked in",
+                 []
+               )
+             )}
 
-          {:ok, _} ->
-            {:error, "Un-supported operation"}
+          {:ok, %Tesla.Env{status: status}} ->
+            {:error,
+             Error.new(
+               :http_error,
+               "Unsupported API response",
+               HttpErrorMetadata.new(
+                 status,
+                 "Unsupported API response",
+                 []
+               )
+             )}
 
           {:error, error} ->
             {:error, error}
@@ -76,16 +97,15 @@ defmodule ExOsrsApi.OsrsApi do
           | :seasonal
           | :tournament
           | :ultimate_ironman,
-          non_neg_integer(),
-          non_neg_integer()
-        ) :: list(PlayerHighscores.t() | {:error, String.t()})
-  def get_multiple_highscores(usernames, type, timeout \\ 60_000, limit \\ 60)
+          Ratelimit.t()
+        ) :: list(PlayerHighscores.t() | {:error, Error.t()})
+  def get_multiple_highscores(usernames, type, ratelimit \\ Ratelimit.new_default)
       when is_list(usernames) and type in @highscore_types do
     tasks =
       usernames
       |> Enum.uniq()
       |> Enum.map(fn username ->
-        Task.async(fn -> get_highscores(username, type, timeout, limit) end)
+        Task.async(fn -> get_highscores(username, type, ratelimit) end)
       end)
 
     Task.yield_many(tasks)
@@ -104,13 +124,13 @@ defmodule ExOsrsApi.OsrsApi do
     end)
   end
 
-  @spec get_all_highscores(String.t(), non_neg_integer(), non_neg_integer()) ::
-          list({:ok, PlayerHighscores.t()} | {:error, String.t()})
-  def get_all_highscores(username, timeout \\ 60_000, limit \\ 60) when is_bitstring(username) do
+  @spec get_all_highscores(String.t(), Ratelimit.t()) ::
+          list({:ok, PlayerHighscores.t()} | {:error, Error.t()})
+  def get_all_highscores(username, ratelimit \\ Ratelimit.new_default) when is_bitstring(username) do
     tasks =
       @highscore_types
       |> Enum.map(fn type ->
-        Task.async(fn -> get_highscores(username, type, timeout, limit) end)
+        Task.async(fn -> get_highscores(username, type, ratelimit) end)
       end)
 
     Task.yield_many(tasks)
@@ -129,15 +149,15 @@ defmodule ExOsrsApi.OsrsApi do
     end)
   end
 
-  @spec get_multiple_all_highscores(list(String.t()), non_neg_integer(), non_neg_integer()) ::
-          list(list(PlayerHighscores.t()) | {:error, String.t()})
-  def get_multiple_all_highscores(usernames, timeout \\ 60_000, limit \\ 60)
+  @spec get_multiple_all_highscores(list(String.t()), Ratelimit.t()) ::
+          list(list(PlayerHighscores.t()) | {:error, Error.t()})
+  def get_multiple_all_highscores(usernames, ratelimit \\ Ratelimit.new_default)
       when is_list(usernames) do
     tasks =
       usernames
       |> Enum.uniq()
       |> Enum.map(fn username ->
-        Task.async(fn -> get_all_highscores(username, timeout, limit) end)
+        Task.async(fn -> get_all_highscores(username, ratelimit) end)
       end)
 
     Task.yield_many(tasks, 20_000)
