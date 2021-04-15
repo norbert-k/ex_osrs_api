@@ -180,12 +180,29 @@ defmodule ExOsrsApi.OsrsApi do
     end)
   end
 
-  @spec create_url(atom(), String.t()) :: String.t()
+  @spec create_url(
+          :deadman
+          | :hardcore_ironman
+          | :ironman
+          | :regular
+          | :seasonal
+          | :tournament
+          | :ultimate_ironman,
+          String.t()
+        ) :: String.t()
   defp create_url(type, username) when is_atom(type) and is_bitstring(username) do
     "m=#{type_transform(type)}/index_lite.ws?player=#{username}"
   end
 
-  @spec type_transform(atom()) :: String.t()
+  @spec type_transform(
+          :deadman
+          | :hardcore_ironman
+          | :ironman
+          | :regular
+          | :seasonal
+          | :tournament
+          | :ultimate_ironman
+        ) :: String.t()
   defp type_transform(type) when is_atom(type) do
     case type do
       :regular -> "hiscore_oldschool"
