@@ -18,7 +18,7 @@ defmodule ExOsrsApi.Ratelimit do
     }
   end
 
-  @spec new_default :: t()
+  @spec new_default :: %ExOsrsApi.Ratelimit{:limit => 60, :timeout => 60000}
   def new_default() do
     %__MODULE__{
       limit: 60,

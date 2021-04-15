@@ -12,7 +12,6 @@ defmodule ExOsrsApi.Errors.Error do
             | :ratelimit_error
             | :parsing_error
             | :data_access_error
-            | :update_package_error
             | :task_error,
           message: String.t(),
           metadata:
@@ -43,15 +42,6 @@ defmodule ExOsrsApi.Errors.Error do
       type: :parsing_error,
       message: message,
       metadata: metadata
-    }
-  end
-
-  @spec new(:update_package_error, String.t()) :: t()
-  def new(:update_package_error, message) do
-    %__MODULE__{
-      type: :update_package_error,
-      message: message,
-      metadata: nil
     }
   end
 

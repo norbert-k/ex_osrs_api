@@ -3,8 +3,8 @@ defmodule ExOsrsApi.Errors.HttpErrorMetadata do
   defstruct [:status_code, :extra_message, :headers, :requested_type]
 
   @type t() :: %__MODULE__{
-          status_code: non_neg_integer(),
-          extra_message: String.t(),
+          status_code: non_neg_integer() | nil,
+          extra_message: String.t() | atom(),
           headers: list(),
           requested_type:
             :deadman
@@ -17,8 +17,8 @@ defmodule ExOsrsApi.Errors.HttpErrorMetadata do
         }
 
   @spec new(
-          non_neg_integer(),
-          String.t(),
+          non_neg_integer() | nil,
+          String.t() | atom(),
           list(),
           :deadman
           | :hardcore_ironman

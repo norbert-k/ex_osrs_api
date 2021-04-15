@@ -11,7 +11,8 @@ defmodule ExOsrsApi.MixProject do
       name: "ExOsrsApi",
       docs: [
         extras: ["README.md"]
-      ]
+      ],
+      dialyzer: [flags: [:error_handling, :race_conditions, :underspecs]]
     ]
   end
 

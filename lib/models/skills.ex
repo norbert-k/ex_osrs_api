@@ -13,7 +13,7 @@ defmodule ExOsrsApi.Models.Skills do
     woodcutting fletching fishing firemaking crafting smithing mining herblore agility
     thieving slayer farming runecrafting hunter construction)a
 
-  @spec get_all_skills :: list(atom())
+  @spec get_all_skills :: [atom(), ...]
   def get_all_skills() do
     @skills
   end

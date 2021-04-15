@@ -23,7 +23,7 @@ defmodule ExOsrsApi.Models.Activities do
                 end
               end)
 
-  @spec get_all_activities :: list(String.t())
+  @spec get_all_activities :: [String.t(), ...]
   def get_all_activities() do
     @activities
   end

@@ -6,8 +6,8 @@ defmodule ExOsrsApi.Models.ActivityEntry do
   alias ExOsrsApi.Errors.ParsingErrorMetadata
 
   @type t() :: %__MODULE__{
-          activity: atom(),
-          rank: non_neg_integer() | nil,
+          activity: String.t(),
+          rank: 1..2_000_000 | nil,
           actions: non_neg_integer() | nil,
           empty: boolean()
         }
@@ -17,7 +17,7 @@ defmodule ExOsrsApi.Models.ActivityEntry do
     empty
   end
 
-  @spec new_from_line(atom(), String.t()) ::
+  @spec new_from_line(String.t(), String.t()) ::
           {:error, Error.t()} | {:ok, t()}
   def new_from_line(activity, line) when is_bitstring(line) do
     case String.split(line, ",", trim: true) do

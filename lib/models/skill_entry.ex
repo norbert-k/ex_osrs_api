@@ -11,9 +11,9 @@ defmodule ExOsrsApi.Models.SkillEntry do
 
   @type t() :: %__MODULE__{
           skill: atom(),
-          rank: non_neg_integer() | nil,
-          level: non_neg_integer() | nil,
-          experience: non_neg_integer() | nil,
+          rank: 1..2_000_000 | nil,
+          level: 0..99 | nil,
+          experience: 0..200_000_000 | nil,
           empty: boolean()
         }
 
