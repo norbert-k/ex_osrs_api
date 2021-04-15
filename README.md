@@ -1,6 +1,14 @@
 # ExOsrsApi (DEVELOPMENT BRANCH)
 Old-school Runescape Highscore API Wrapper
 
+## Todo
+
+[ ] Better error handling & error types
+[ ] Configuration `config.ex` support
+[ ] Testing (Mock Osrs API responses)
+[ ] Start `ExRated` in Application tree (`application.ex`)
+[ ] Improve documentation
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
