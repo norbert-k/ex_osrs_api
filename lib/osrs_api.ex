@@ -35,7 +35,7 @@ defmodule ExOsrsApi.OsrsApi do
           | :ultimate_ironman,
           Ratelimit.t()
         ) :: {:error, Error.t()} | {:ok, PlayerHighscores.t()}
-  def get_highscores(username, type, ratelimit \\ Ratelimit.new_default)
+  def get_highscores(username, type, ratelimit \\ Ratelimit.new_default())
       when is_bitstring(username) and type in @highscore_types do
     case Ratelimit.check_ratelimit(ratelimit, type) do
       {:ok, _} ->
@@ -43,7 +43,7 @@ defmodule ExOsrsApi.OsrsApi do
           {:ok, %Tesla.Env{body: body, status: 200}} ->
             PlayerHighscores.new_from_bitstring(username, type, body)
 
-          {:ok, %Tesla.Env{status: 404}} ->
+          {:ok, %Tesla.Env{status: 404, headers: headers}} ->
             {:error,
              Error.new(
                :http_error,
@@ -51,11 +51,12 @@ defmodule ExOsrsApi.OsrsApi do
                HttpErrorMetadata.new(
                  404,
                  "404 not found (username: #{username}, type: #{type})",
-                 []
+                 headers,
+                 type
                )
              )}
 
-          {:ok, %Tesla.Env{status: status}} when status in [428, 500, 504] ->
+          {:ok, %Tesla.Env{status: status, headers: headers}} when status in [428, 500, 504] ->
             {:error,
              Error.new(
                :http_error,
@@ -63,11 +64,12 @@ defmodule ExOsrsApi.OsrsApi do
                HttpErrorMetadata.new(
                  status,
                  "Service offline or ratelimiter has kicked in",
-                 []
+                 headers,
+                 type
                )
              )}
 
-          {:ok, %Tesla.Env{status: status}} ->
+          {:ok, %Tesla.Env{status: status, headers: headers}} ->
             {:error,
              Error.new(
                :http_error,
@@ -75,7 +77,8 @@ defmodule ExOsrsApi.OsrsApi do
                HttpErrorMetadata.new(
                  status,
                  "Unsupported API response",
-                 []
+                 headers,
+                 type
                )
              )}
 
@@ -99,7 +102,7 @@ defmodule ExOsrsApi.OsrsApi do
           | :ultimate_ironman,
           Ratelimit.t()
         ) :: list(PlayerHighscores.t() | {:error, Error.t()})
-  def get_multiple_highscores(usernames, type, ratelimit \\ Ratelimit.new_default)
+  def get_multiple_highscores(usernames, type, ratelimit \\ Ratelimit.new_default())
       when is_list(usernames) and type in @highscore_types do
     tasks =
       usernames
@@ -126,7 +129,8 @@ defmodule ExOsrsApi.OsrsApi do
 
   @spec get_all_highscores(String.t(), Ratelimit.t()) ::
           list({:ok, PlayerHighscores.t()} | {:error, Error.t()})
-  def get_all_highscores(username, ratelimit \\ Ratelimit.new_default) when is_bitstring(username) do
+  def get_all_highscores(username, ratelimit \\ Ratelimit.new_default())
+      when is_bitstring(username) do
     tasks =
       @highscore_types
       |> Enum.map(fn type ->
@@ -151,7 +155,7 @@ defmodule ExOsrsApi.OsrsApi do
 
   @spec get_multiple_all_highscores(list(String.t()), Ratelimit.t()) ::
           list(list(PlayerHighscores.t()) | {:error, Error.t()})
-  def get_multiple_all_highscores(usernames, ratelimit \\ Ratelimit.new_default)
+  def get_multiple_all_highscores(usernames, ratelimit \\ Ratelimit.new_default())
       when is_list(usernames) do
     tasks =
       usernames

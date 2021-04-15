@@ -37,7 +37,7 @@ defmodule ExOsrsApi.Ratelimit do
           | :ultimate_ironman
         ) :: {:ok, integer()} | {:error, Error.t()}
   def check_ratelimit(%__MODULE__{limit: limit, timeout: timeout}, type)
-       when is_atom(type) and is_integer(timeout) and is_integer(limit) do
+      when is_atom(type) and is_integer(timeout) and is_integer(limit) do
     case ExRated.check_rate("osrs-api-rate-limit-" <> Atom.to_string(type), timeout, limit) do
       {:ok, value} ->
         {:ok, value}
