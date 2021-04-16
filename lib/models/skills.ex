@@ -60,7 +60,7 @@ defmodule ExOsrsApi.Models.Skills do
   @spec get_skill_data(t(), atom()) ::
           {:error, Error.t()} | {:ok, SkillEntry.t()}
   def get_skill_data(%__MODULE__{data: data}, skill) when is_atom(skill) do
-    case Enum.find(data, fn %SkillEntry{skill: skill} -> skill == skill end) do
+    case Enum.find(data, fn %SkillEntry{skill: x} -> x == skill end) do
       nil -> {:error, Error.new(:data_access_error, "Skill (#{skill}) not found")}
       value -> {:ok, value}
     end

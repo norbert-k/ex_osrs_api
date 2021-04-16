@@ -1,12 +1,14 @@
-name: MAIN_CI
+name: DEVELOPMENT_CI
 
 on:
   push:
     branches: 
-      - main
+      - development
+      - development-*
   pull_request:
     branches:
-      - main
+      - development
+      - development-*
   workflow_dispatch:
 
 jobs:
