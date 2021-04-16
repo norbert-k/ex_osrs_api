@@ -5,6 +5,7 @@ defmodule ExOsrsApi.OsrsApi do
   alias ExOsrsApi.PlayerHighscores
   alias ExOsrsApi.Errors.Error
   alias ExOsrsApi.Errors.HttpErrorMetadata
+  alias ExOsrsApi.PlayerRequest
 
   @highscore_types ~w(regular ironman hardcore_ironman ultimate_ironman deadman seasonal tournament)a
 
@@ -26,15 +27,18 @@ defmodule ExOsrsApi.OsrsApi do
     end
   )
 
-  @spec get_highscores(
-          String.t(),
+  @type highscore_type ::
           :deadman
           | :hardcore_ironman
           | :ironman
           | :regular
           | :seasonal
           | :tournament
-          | :ultimate_ironman,
+          | :ultimate_ironman
+
+  @spec get_highscores(
+          String.t(),
+          highscore_type(),
           Ratelimit.t()
         ) :: {:error, Error.t()} | {:ok, PlayerHighscores.t()}
   def get_highscores(username, type, ratelimit \\ @default_ratelimiter)
@@ -105,13 +109,7 @@ defmodule ExOsrsApi.OsrsApi do
 
   @spec get_multiple_highscores(
           list(String.t()),
-          :deadman
-          | :hardcore_ironman
-          | :ironman
-          | :regular
-          | :seasonal
-          | :tournament
-          | :ultimate_ironman,
+          highscore_type(),
           Ratelimit.t()
         ) :: list(PlayerHighscores.t() | {:error, Error.t()})
   def get_multiple_highscores(usernames, type, ratelimit \\ @default_ratelimiter)
@@ -192,29 +190,70 @@ defmodule ExOsrsApi.OsrsApi do
     end)
   end
 
+  @spec get_player_request(ExOsrsApi.PlayerRequest.t(), Ratelimit.t()) ::
+          list(PlayerHighscores.t() | {:error, Error.t()})
+  def get_player_request(
+        %PlayerRequest{username: username, types: types},
+        ratelimit \\ @default_ratelimiter
+      ) do
+    tasks =
+      types
+      |> Enum.map(fn type ->
+        Task.async(fn -> get_highscores(username, type, ratelimit) end)
+      end)
+
+    Task.yield_many(tasks, 30_000)
+    |> Enum.map(fn {task, result} ->
+      case result do
+        nil ->
+          Task.shutdown(task, :brutal_kill)
+          Error.new(:task_error, "Task timed out")
+
+        {:exit, reason} ->
+          Error.new(:task_error, reason)
+
+        {:ok, result} ->
+          result
+      end
+    end)
+  end
+
+  @spec get_multiple_player_request(list(PlayerRequest.t()), Ratelimit.t()) ::
+          list(PlayerHighscores.t() | {:error, Error.t()})
+  def get_multiple_player_request(player_requests, ratelimit \\ @default_ratelimiter)
+      when is_list(player_requests) do
+    tasks =
+      player_requests
+      |> Enum.uniq()
+      |> Enum.map(fn player_request ->
+        Task.async(fn -> get_player_request(player_request, ratelimit) end)
+      end)
+
+    Task.yield_many(tasks, 30_000)
+    |> Enum.flat_map(fn {task, result} ->
+      case result do
+        nil ->
+          Task.shutdown(task, :brutal_kill)
+          Error.new(:task_error, "Task timed out")
+
+        {:exit, reason} ->
+          Error.new(:task_error, reason)
+
+        {:ok, result} ->
+          result
+      end
+    end)
+  end
+
   @spec create_url(
-          :deadman
-          | :hardcore_ironman
-          | :ironman
-          | :regular
-          | :seasonal
-          | :tournament
-          | :ultimate_ironman,
+          highscore_type(),
           String.t()
         ) :: String.t()
   defp create_url(type, username) when is_atom(type) and is_bitstring(username) do
     "m=#{type_transform(type)}/index_lite.ws?player=#{username}"
   end
 
-  @spec type_transform(
-          :deadman
-          | :hardcore_ironman
-          | :ironman
-          | :regular
-          | :seasonal
-          | :tournament
-          | :ultimate_ironman
-        ) :: String.t()
+  @spec type_transform(highscore_type()) :: String.t()
   defp type_transform(type) when is_atom(type) do
     case type do
       :regular -> "hiscore_oldschool"
