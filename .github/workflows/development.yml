@@ -1,18 +1,14 @@
-name: CI
+name: DEVELOPMENT_CI
 
-# Controls when the action will run. 
 on:
   push:
     branches: 
-      - main
       - development
-      - development/*
+      - development-*
   pull_request:
     branches:
-      - main
       - development
-      - development/*
-
+      - development-*
   workflow_dispatch:
 
 jobs:
