@@ -70,7 +70,7 @@ defmodule ExOsrsApi.Models.Activities do
   @spec get_activity_data(t(), String.t()) ::
           {:error, String.t()} | {:ok, ActivityEntry.t()}
   def get_activity_data(%__MODULE__{data: data}, activity) when is_bitstring(activity) do
-    case Enum.find(data, fn %ActivityEntry{activity: activity} -> activity == activity end) do
+    case Enum.find(data, fn %ActivityEntry{activity: x} -> x == activity end) do
       nil -> {:error, Error.new(:data_access_error, "Activity (#{activity}) not found")}
       value -> {:ok, value}
     end
