@@ -1,4 +1,8 @@
 defmodule ExOsrsApi.OsrsApi do
+  @moduledoc """
+  ### OsrsApi
+  Main module for API requests
+  """
   use Tesla, only: ~w(get)a, docs: false
 
   alias ExOsrsApi.Ratelimit
@@ -27,6 +31,9 @@ defmodule ExOsrsApi.OsrsApi do
     end
   )
 
+  @typedoc """
+  Supported highscore types
+  """
   @type highscore_type ::
           :deadman
           | :hardcore_ironman
@@ -41,6 +48,9 @@ defmodule ExOsrsApi.OsrsApi do
           highscore_type(),
           Ratelimit.t()
         ) :: {:error, Error.t()} | {:ok, PlayerHighscores.t()}
+  @doc """
+  Get player highscores by player username and highscore type
+  """
   def get_highscores(username, type, ratelimit \\ @default_ratelimiter)
       when is_bitstring(username) and type in @highscore_types do
     case Ratelimit.check_ratelimit(ratelimit, type) do
@@ -107,6 +117,9 @@ defmodule ExOsrsApi.OsrsApi do
     end
   end
 
+  @doc """
+  Get multiple player highscores by player username list and highscore type
+  """
   @spec get_multiple_highscores(
           list(String.t()),
           highscore_type(),
@@ -137,6 +150,9 @@ defmodule ExOsrsApi.OsrsApi do
     end)
   end
 
+  @doc """
+  Get multiple player highscores by player username and every highscore type
+  """
   @spec get_all_highscores(String.t(), Ratelimit.t()) ::
           list({:ok, PlayerHighscores.t()} | {:error, Error.t()})
   def get_all_highscores(username, ratelimit \\ @default_ratelimiter)
@@ -163,6 +179,9 @@ defmodule ExOsrsApi.OsrsApi do
     end)
   end
 
+  @doc """
+  Get multiple player highscores by player username list and every highscore type
+  """
   @spec get_multiple_all_highscores(list(String.t()), Ratelimit.t()) ::
           list(PlayerHighscores.t() | {:error, Error.t()})
   def get_multiple_all_highscores(usernames, ratelimit \\ @default_ratelimiter)
@@ -190,6 +209,9 @@ defmodule ExOsrsApi.OsrsApi do
     end)
   end
 
+  @doc """
+  Get player highscores by `ExOsrsApi.PlayerRequest` type
+  """
   @spec get_player_request(ExOsrsApi.PlayerRequest.t(), Ratelimit.t()) ::
           list(PlayerHighscores.t() | {:error, Error.t()})
   def get_player_request(
@@ -218,6 +240,9 @@ defmodule ExOsrsApi.OsrsApi do
     end)
   end
 
+  @doc """
+  Get multiple player highscores by `ExOsrsApi.PlayerRequest` type
+  """
   @spec get_multiple_player_request(list(PlayerRequest.t()), Ratelimit.t()) ::
           list(PlayerHighscores.t() | {:error, Error.t()})
   def get_multiple_player_request(player_requests, ratelimit \\ @default_ratelimiter)

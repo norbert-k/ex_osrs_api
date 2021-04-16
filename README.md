@@ -1,78 +1,72 @@
 # ExOsrsApi
 Old-school Runescape Highscore API Wrapper
 
-## Todo
-
-1) Improve documentation
-2) Mock API responses for testing
-
+[https://hexdocs.pm/ex_osrs_api](https://hexdocs.pm/ex_osrs_api)
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ex_osrs_api` to your list of dependencies in `mix.exs`:
+Package can be installed by adding `ex_osrs_api` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:ex_osrs_api, "~> 0.1.0"}
+    {:ex_osrs_api, "~> 1.0"}
   ]
 end
 ```
 
+## Versioning & Notes
+
+Package is updated every time jagex introduces new activity (patch version bump), old packages will fail to parse activity data if they're not updated to latest version, so always specify `{:ex_osrs_api, "~> 1.0"}` version to get latest support for ever changing Highscore API support.
+
+Latest Supported activities:
+* Tempoross - package version `"1.0.0"` : `{:ex_osrs_api, "~> 1.0.0"}`
+
 ## Examples
 
-### module examples
+Supported highscore types:
 ```elixir
-defmodule MyService do
-  alias ExOsrsApi.OsrsApi
-
-  # Get regular highscore data
-  def get_data(username) do
-    OsrsApi.get_highscores(username, :regular)
-  end
-end
+:deadman # Deadman mode
+:hardcore_ironman # Hardcore Ironman
+:ironman # Ironman
+:regular # Regular highscores
+:seasonal # Seasonal
+:tournament # Tournament
+:ultimate_ironman # Ultimate Ironman
 ```
 
-### iex examples
-
+`ExOsrsApi.PlayerRequest` API Examples
 ```elixir
-# Get regular (non ironman, deadman mode etc... highscores)
-iex(0)> alias ExOsrsApi.OsrsApi
+alias ExOsrsApi.OsrsApi
+alias ExOsrsApi.PlayerRequest
 
-iex(1)> OsrsApi.get_highscores("BstnDynamics", :regular)
+# Create new player request for regular highscores
+character_request = PlayerRequest.new("BstnDynamics", :regular)
 
-iex(2)> {:ok,
- %ExOsrsApi.PlayerHighscores{
-   activities: %ExOsrsApi.Models.Activities{
-     data: [
-       %ExOsrsApi.Models.ActivityEntry{
-         actions: nil,
-         activity: "League Points",
-         empty: true,
-         rank: nil
-       },
-       ...
-     ]
-   }
-  empty: false,
-  skills: %ExOsrsApi.Models.Skills{
-     data: [
-       %ExOsrsApi.Models.SkillEntry{
-         empty: false,
-         experience: 8460220,
-         level: 1205,
-         rank: 1087587,
-         skill: :overall
-       },
-       ...
-     ]
-  }
-  type: :regular,
-  username: "BstnDynamics"
- }}
+# Create new player request for regular and ironman highscores
+character_request_2 = PlayerRequest.new("BstnDynamics", [:regular, :ironman])
+
+# Request single player_request
+OsrsApi.get_player_request(character_request)
+
+# Request multiple player_requests
+OsrsApi.get_multiple_player_request([character_request, character_request_2])
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/ex_osrs_api](https://hexdocs.pm/ex_osrs_api).
+Regular API Examples
+```elixir
 
+# Get regular highscores for BstnDynamics player
+OsrsApi.get_highscores("BstnDynamics", :regular)
+
+# Get all highscore types for BstnDynamics player
+OsrsApi.get_all_highscores("BstnDynamics")
+
+# Get multiple user regular highscores
+OsrsApi.get_multiple_highscores(["BstnDynamics", "mystAvery"], :regular)
+
+# Get multiple user ironman highscores
+OsrsApi.get_multiple_highscores(["BstnDynamics", "mystAvery"], :ironman)
+
+# Get multiple user highscores for every supported highscore type
+OsrsApi.get_multiple_all_highscores(["BstnDynamics", "mystAvery"])
+```

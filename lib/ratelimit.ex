@@ -1,4 +1,11 @@
 defmodule ExOsrsApi.Ratelimit do
+  @moduledoc """
+  ### Ratelimit
+  Ratelimit configuration
+
+  * duration: duration of ratelimit in milliseconds
+  * limit: maximum amount of requests in timeout duration
+  """
   alias ExOsrsApi.Errors.Error
   alias ExOsrsApi.Errors.RatelimitErrorMetadata
 
@@ -10,6 +17,9 @@ defmodule ExOsrsApi.Ratelimit do
           timeout: non_neg_integer()
         }
 
+  @doc """
+  Create new ratelimit specification
+  """
   @spec new(non_neg_integer(), non_neg_integer()) :: t()
   def new(limit, timeout) do
     %__MODULE__{
@@ -18,6 +28,9 @@ defmodule ExOsrsApi.Ratelimit do
     }
   end
 
+  @doc """
+  Create new default ratelimit specification (60 requests per second)
+  """
   @spec new_default :: %ExOsrsApi.Ratelimit{:limit => 60, :timeout => 60000}
   def new_default() do
     %__MODULE__{

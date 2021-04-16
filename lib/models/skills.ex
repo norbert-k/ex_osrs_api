@@ -13,16 +13,25 @@ defmodule ExOsrsApi.Models.Skills do
     woodcutting fletching fishing firemaking crafting smithing mining herblore agility
     thieving slayer farming runecrafting hunter construction)a
 
+  @doc """
+  Get all suported skills
+  """
   @spec get_all_skills :: [atom(), ...]
   def get_all_skills() do
     @skills
   end
 
+  @doc """
+  Get suported skills list length
+  """
   @spec skill_length :: non_neg_integer
   def skill_length() do
     length(@skills)
   end
 
+  @doc """
+  Creates new `%ExOsrsApi.Models.Skills{}` from "CSV" like string seperated by newlines `"\n"`
+  """
   @spec new_from_bitstring(list(String.t())) ::
           {:error, Error.t()} | {:ok, t()}
   def new_from_bitstring(data) when is_list(data) do

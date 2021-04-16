@@ -23,16 +23,25 @@ defmodule ExOsrsApi.Models.Activities do
                 end
               end)
 
+  @doc """
+  Get all suported activities
+  """
   @spec get_all_activities :: [String.t(), ...]
   def get_all_activities() do
     @activities
   end
 
+  @doc """
+  Get suported activities list length
+  """
   @spec activities_length :: non_neg_integer
   def activities_length() do
     length(@activities)
   end
 
+  @doc """
+  Creates new `%ExOsrsApi.Models.Activities{}` from "CSV" like string seperated by newlines `"\n"`
+  """
   @spec new_from_bitstring(list(String.t())) ::
           {:error, Error.t()} | {:ok, t()}
   def new_from_bitstring(data) when is_list(data) do
