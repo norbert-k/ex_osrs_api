@@ -2,6 +2,7 @@ defmodule ExOsrsApiTest.Models.SkillEntry do
   alias ExOsrsApi.Models.SkillEntry
 
   use ExUnit.Case
+  doctest ExOsrsApi.Models.SkillEntry
 
   test "new from line (success)" do
     assert SkillEntry.new_from_line(:attack, "30,30,30") ==

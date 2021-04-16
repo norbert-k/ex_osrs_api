@@ -1,4 +1,19 @@
 defmodule ExOsrsApi.Errors.Error do
+  @moduledoc """
+  Represents ExOsrsApi Error,
+  Types or errors: [`:http_error`, `:ratelimit_error`, `:parsing_error`, `:data_access_error`, `:task_error`]
+
+  #### http_error
+  Represents underlying http error (404, 500 etc.., non 2XX status codes)
+  #### ratelimit_error
+  `ex_rated` ratelimit error when going over configured rate limit
+  #### parsing_error
+  API parsing error (when parsing CSV like highscore API data)
+  #### data_access_error
+  When accessing `skills` or `activities` data that doesn't exist
+  #### task_error
+  Represents `Task.async` errors when executing multiple requests
+  """
   @enforce_keys [:type, :message]
   defstruct [:type, :message, :metadata]
 

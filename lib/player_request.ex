@@ -1,4 +1,8 @@
 defmodule ExOsrsApi.PlayerRequest do
+  @moduledoc """
+  ### PlayerRequest
+  For fine-tuned API requests
+  """
   alias ExOsrsApi.OsrsApi
 
   @enforce_keys [:username, :types]
@@ -10,6 +14,9 @@ defmodule ExOsrsApi.PlayerRequest do
         }
 
   @spec new(String.t(), list(OsrsApi.highscore_type())) :: t()
+  @doc """
+  Create new `PlayerRequest` for specific highscore_type requests
+  """
   def new(username, types) when is_list(types) do
     %__MODULE__{
       username: username,

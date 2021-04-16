@@ -1,4 +1,9 @@
 defmodule ExOsrsApi.Models.ActivityEntry do
+  @moduledoc """
+  ### ActivityEntry
+  Represents Highscore activity data (League Points,Bounty Hunter - Hunter,Bounty Hunter - Rogue,Clue Scrolls (all),Clue Scrolls (beginner)...) entry
+  """
+
   @enforce_keys [:activity, :rank, :actions, :empty]
   defstruct [:activity, :rank, :actions, :empty]
 
@@ -12,11 +17,17 @@ defmodule ExOsrsApi.Models.ActivityEntry do
           empty: boolean()
         }
 
+  @doc """
+  Check if ActivityEntry is empty
+  """
   @spec is_empty?(%ExOsrsApi.Models.ActivityEntry{}) :: boolean()
   def is_empty?(%__MODULE__{empty: empty}) do
     empty
   end
 
+  @doc """
+  Creates new `%ExOsrsApi.Models.ActivityEntry{}` from "CSV" like string seperated by commas ","
+  """
   @spec new_from_line(String.t(), String.t()) ::
           {:error, Error.t()} | {:ok, t()}
   def new_from_line(activity, line) when is_bitstring(line) do
