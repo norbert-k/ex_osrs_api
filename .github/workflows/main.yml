@@ -1,0 +1,23 @@
+name: MAIN_CI
+
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: '23.x'
+          elixir-version: '1.11'
+      - run: mix deps.get
+      - run: mix dialyzer
+      - run: mix test
