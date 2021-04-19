@@ -9,47 +9,70 @@ defmodule ExOsrsApi.Models.Activities do
           data: list(ActivityEntry.t())
         }
 
-  @activities "League Points,Bounty Hunter - Hunter,Bounty Hunter - Rogue,Clue Scrolls (all),Clue Scrolls (beginner),Clue Scrolls (easy),
-  Clue Scrolls (medium),Clue Scrolls (hard),Clue Scrolls (elite),Clue Scrolls (master),LMS - Rank,Soul Wars Zeal,Abyssal Sire,Alchemical Hydra,Barrows Chests,
+  @default_acitivites "League Points,Bounty Hunter - Hunter,Bounty Hunter - Rogue,Clue Scrolls (all),Clue Scrolls (beginner),Clue Scrolls (easy),
+  Clue Scrolls (medium),Clue Scrolls (hard),Clue Scrolls (elite),Clue Scrolls (master)"
+                      |> String.replace("\n", "")
+                      |> String.split(",", trim: true)
+                      |> Enum.map(fn activity ->
+                        case String.replace(activity, ~r/\s+/, " ") do
+                          " " <> activity -> activity
+                          _ -> activity
+                        end
+                      end)
+
+  @minigame_activities "LMS - Rank,Soul Wars Zeal"
+                       |> String.split(",", trim: true)
+                       |> Enum.map(fn activity ->
+                         case String.replace(activity, ~r/\s+/, " ") do
+                           " " <> activity -> activity
+                           _ -> activity
+                         end
+                       end)
+
+  @pvm_activities "Abyssal Sire,Alchemical Hydra,Barrows Chests,
   Bryophyta,Callisto,Cerberus,Chambers of Xeric,Chambers of Xeric: Challenge Mode,Chaos Elemental,Chaos Fanatic,Commander Zilyana,Corporeal Beast,Crazy Archaeologist,
   Dagannoth Prime,Dagannoth Rex,Dagannoth Supreme,Deranged Archaeologist,General Graardor,Giant Mole,Grotesque Guardians,Hespori,Kalphite Queen,King Black Dragon,Kraken,Kree'Arra,K'ril Tsutsaroth,Mimic,
   Nightmare,Obor,Sarachnis,Scorpia,Skotizo,Tempoross,The Gauntlet,The Corrupted Gauntlet,Theatre of Blood,Thermonuclear Smoke Devil,TzKal-Zuk,TzTok-Jad,Venenatis,Vet'ion,Vorkath,Wintertodt,Zalcano,Zulrah"
-              |> String.replace("\n", "")
-              |> String.split(",", trim: true)
-              |> Enum.map(fn activity ->
-                case String.replace(activity, ~r/\s+/, " ") do
-                  " " <> activity -> activity
-                  _ -> activity
-                end
-              end)
+                  |> String.replace("\n", "")
+                  |> String.split(",", trim: true)
+                  |> Enum.map(fn activity ->
+                    case String.replace(activity, ~r/\s+/, " ") do
+                      " " <> activity -> activity
+                      _ -> activity
+                    end
+                  end)
+
+  @activities @default_acitivites ++ @minigame_activities ++ @pvm_activities
 
   @doc """
   Get all suported activities
   """
-  @spec get_all_activities :: [String.t(), ...]
-  def get_all_activities() do
+  @spec get_all_default_activities :: [String.t(), ...]
+  def get_all_default_activities() do
     @activities
   end
 
   @doc """
   Get suported activities list length
   """
-  @spec activities_length :: non_neg_integer
-  def activities_length() do
+  @spec default_activities_length :: non_neg_integer
+  def default_activities_length() do
     length(@activities)
   end
 
   @doc """
   Creates new `%ExOsrsApi.Models.Activities{}` from "CSV" like string seperated by newlines `"\n"`
+
+  You can supply your own activity list by specifying second argument with your own list of activities (list of strings)
   """
-  @spec new_from_bitstring(list(String.t())) ::
+  @spec new_from_bitstring(list(String.t()), list(String.t())) ::
           {:error, Error.t()} | {:ok, t()}
-  def new_from_bitstring(data) when is_list(data) do
+  def new_from_bitstring(data, supported_activities \\ @activities) when is_list(data) do
     activity_data =
       data
       |> Enum.with_index()
       |> Enum.reduce_while({:ok, []}, fn {value, index}, {:ok, acc} ->
-        case ActivityEntry.new_from_line(Enum.at(@activities, index), value) do
+        case ActivityEntry.new_from_line(Enum.at(supported_activities, index), value) do
           {:ok, entry} -> {:cont, {:ok, [entry | acc]}}
           {:error, error} -> {:halt, {:error, error}}
         end
@@ -57,7 +80,7 @@ defmodule ExOsrsApi.Models.Activities do
 
     case activity_data do
       {:ok, data} ->
-        if length(data) == length(@activities) do
+        if length(data) == length(supported_activities) do
           {:ok,
            %__MODULE__{
              data: data |> Enum.reverse()

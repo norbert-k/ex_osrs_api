@@ -4,7 +4,7 @@ defmodule ExOsrsApi.MixProject do
   def project do
     [
       app: :ex_osrs_api,
-      version: "1.0.0",
+      version: "1.1.0",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),

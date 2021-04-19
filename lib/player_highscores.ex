@@ -30,9 +30,17 @@ defmodule ExOsrsApi.PlayerHighscores do
 
   @doc """
   Creates new `%ExOsrsApi.PlayerHighscores{}` from "CSV" like string
+
+  You can supply your own activity list by specifying last argument with your own list of activities (list of strings)
   """
-  @spec new_from_bitstring(String.t(), atom(), String.t()) :: {:error, Error.t()} | {:ok, t()}
-  def new_from_bitstring(username, type, data)
+  @spec new_from_bitstring(String.t(), atom(), String.t(), list(String.t())) ::
+          {:error, Error.t()} | {:ok, t()}
+  def new_from_bitstring(
+        username,
+        type,
+        data,
+        supported_activities \\ Activities.get_all_default_activities()
+      )
       when is_bitstring(username) and is_bitstring(data) do
     {skills, activities} =
       data
@@ -40,7 +48,7 @@ defmodule ExOsrsApi.PlayerHighscores do
       |> Enum.split(Skills.skill_length())
 
     with {:ok, skills} <- skills |> Skills.new_from_bitstring(),
-         {:ok, activities} <- activities |> Activities.new_from_bitstring() do
+         {:ok, activities} <- activities |> Activities.new_from_bitstring(supported_activities) do
       {:ok,
        %__MODULE__{
          username: username,
