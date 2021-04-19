@@ -10,6 +10,7 @@ defmodule ExOsrsApi.OsrsApi do
   alias ExOsrsApi.Errors.Error
   alias ExOsrsApi.Errors.HttpErrorMetadata
   alias ExOsrsApi.PlayerRequest
+  alias ExOsrsApi.Models.Activities
 
   @highscore_types ~w(regular ironman hardcore_ironman ultimate_ironman deadman seasonal tournament)a
 
@@ -46,18 +47,24 @@ defmodule ExOsrsApi.OsrsApi do
   @spec get_highscores(
           String.t(),
           highscore_type(),
-          Ratelimit.t()
+          Ratelimit.t(),
+          list(String.t())
         ) :: {:error, Error.t()} | {:ok, PlayerHighscores.t()}
   @doc """
   Get player highscores by player username and highscore type
   """
-  def get_highscores(username, type, ratelimit \\ @default_ratelimiter)
+  def get_highscores(
+        username,
+        type,
+        ratelimit \\ @default_ratelimiter,
+        supported_activities \\ Activities.get_all_default_activities()
+      )
       when is_bitstring(username) and type in @highscore_types do
     case Ratelimit.check_ratelimit(ratelimit, type) do
       {:ok, _} ->
         case create_url(type, username) |> get() do
           {:ok, %Tesla.Env{body: body, status: 200}} ->
-            PlayerHighscores.new_from_bitstring(username, type, body)
+            PlayerHighscores.new_from_bitstring(username, type, body, supported_activities)
 
           {:ok, %Tesla.Env{status: 404, headers: headers}} ->
             {:error,
@@ -123,15 +130,21 @@ defmodule ExOsrsApi.OsrsApi do
   @spec get_multiple_highscores(
           list(String.t()),
           highscore_type(),
-          Ratelimit.t()
+          Ratelimit.t(),
+          list(String.t())
         ) :: list(PlayerHighscores.t() | {:error, Error.t()})
-  def get_multiple_highscores(usernames, type, ratelimit \\ @default_ratelimiter)
+  def get_multiple_highscores(
+        usernames,
+        type,
+        ratelimit \\ @default_ratelimiter,
+        supported_activities \\ Activities.get_all_default_activities()
+      )
       when is_list(usernames) and type in @highscore_types do
     tasks =
       usernames
       |> Enum.uniq()
       |> Enum.map(fn username ->
-        Task.async(fn -> get_highscores(username, type, ratelimit) end)
+        Task.async(fn -> get_highscores(username, type, ratelimit, supported_activities) end)
       end)
 
     Task.yield_many(tasks, 30000)
@@ -153,14 +166,18 @@ defmodule ExOsrsApi.OsrsApi do
   @doc """
   Get multiple player highscores by player username and every highscore type
   """
-  @spec get_all_highscores(String.t(), Ratelimit.t()) ::
+  @spec get_all_highscores(String.t(), Ratelimit.t(), list(String.t())) ::
           list({:ok, PlayerHighscores.t()} | {:error, Error.t()})
-  def get_all_highscores(username, ratelimit \\ @default_ratelimiter)
+  def get_all_highscores(
+        username,
+        ratelimit \\ @default_ratelimiter,
+        supported_activities \\ Activities.get_all_default_activities()
+      )
       when is_bitstring(username) do
     tasks =
       @highscore_types
       |> Enum.map(fn type ->
-        Task.async(fn -> get_highscores(username, type, ratelimit) end)
+        Task.async(fn -> get_highscores(username, type, ratelimit, supported_activities) end)
       end)
 
     Task.yield_many(tasks, 30_000)
@@ -182,15 +199,19 @@ defmodule ExOsrsApi.OsrsApi do
   @doc """
   Get multiple player highscores by player username list and every highscore type
   """
-  @spec get_multiple_all_highscores(list(String.t()), Ratelimit.t()) ::
+  @spec get_multiple_all_highscores(list(String.t()), Ratelimit.t(), list(String.t())) ::
           list(PlayerHighscores.t() | {:error, Error.t()})
-  def get_multiple_all_highscores(usernames, ratelimit \\ @default_ratelimiter)
+  def get_multiple_all_highscores(
+        usernames,
+        ratelimit \\ @default_ratelimiter,
+        supported_activities \\ Activities.get_all_default_activities()
+      )
       when is_list(usernames) do
     tasks =
       usernames
       |> Enum.uniq()
       |> Enum.map(fn username ->
-        Task.async(fn -> get_all_highscores(username, ratelimit) end)
+        Task.async(fn -> get_all_highscores(username, ratelimit, supported_activities) end)
       end)
 
     Task.yield_many(tasks, 30_000)
@@ -212,16 +233,17 @@ defmodule ExOsrsApi.OsrsApi do
   @doc """
   Get player highscores by `ExOsrsApi.PlayerRequest` type
   """
-  @spec get_player_request(ExOsrsApi.PlayerRequest.t(), Ratelimit.t()) ::
+  @spec get_player_request(ExOsrsApi.PlayerRequest.t(), Ratelimit.t(), list(String.t())) ::
           list(PlayerHighscores.t() | {:error, Error.t()})
   def get_player_request(
         %PlayerRequest{username: username, types: types},
-        ratelimit \\ @default_ratelimiter
+        ratelimit \\ @default_ratelimiter,
+        supported_activities \\ Activities.get_all_default_activities()
       ) do
     tasks =
       types
       |> Enum.map(fn type ->
-        Task.async(fn -> get_highscores(username, type, ratelimit) end)
+        Task.async(fn -> get_highscores(username, type, ratelimit, supported_activities) end)
       end)
 
     Task.yield_many(tasks, 30_000)
@@ -243,15 +265,19 @@ defmodule ExOsrsApi.OsrsApi do
   @doc """
   Get multiple player highscores by `ExOsrsApi.PlayerRequest` type
   """
-  @spec get_multiple_player_request(list(PlayerRequest.t()), Ratelimit.t()) ::
+  @spec get_multiple_player_request(list(PlayerRequest.t()), Ratelimit.t(), list(String.t())) ::
           list(PlayerHighscores.t() | {:error, Error.t()})
-  def get_multiple_player_request(player_requests, ratelimit \\ @default_ratelimiter)
+  def get_multiple_player_request(
+        player_requests,
+        ratelimit \\ @default_ratelimiter,
+        supported_activities \\ Activities.get_all_default_activities()
+      )
       when is_list(player_requests) do
     tasks =
       player_requests
       |> Enum.uniq()
       |> Enum.map(fn player_request ->
-        Task.async(fn -> get_player_request(player_request, ratelimit) end)
+        Task.async(fn -> get_player_request(player_request, ratelimit, supported_activities) end)
       end)
 
     Task.yield_many(tasks, 30_000)

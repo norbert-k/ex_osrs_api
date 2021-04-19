@@ -9,7 +9,7 @@ Package can be installed by adding `ex_osrs_api` to your list of dependencies in
 ```elixir
 def deps do
   [
-    {:ex_osrs_api, "~> 1.0"}
+    {:ex_osrs_api, "~> 1.1"}
   ]
 end
 ```
@@ -18,8 +18,16 @@ end
 
 Package is updated every time jagex introduces new activity (patch version bump), old packages will fail to parse activity data if they're not updated to latest version, so always specify `{:ex_osrs_api, "~> 1.0"}` version to get latest support for ever changing Highscore API support.
 
-Latest Supported activities:
-* Tempoross - package version `"1.0.0"` : `{:ex_osrs_api, "~> 1.0.0"}`
+1.1 release:
+* Custom activity parsing support, supply your own activity list.
+
+```elixir
+# Supply custom activity list after ratelimiter
+OsrsApi.get_highscores("BstnDynamics", :regular, ratelimiter, custom_activity_list)
+
+# Supply custom activity list after ratelimiter
+OsrsApi.get_multiple_highscores(["BstnDynamics", "mystAvery"], :regular, ratelimiter, custom_activity_list)
+```
 
 ## Examples
 
