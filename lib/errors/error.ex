@@ -29,8 +29,7 @@ defmodule ExOsrsApi.Errors.Error do
             | :data_access_error
             | :task_error,
           message: String.t(),
-          metadata:
-            HttpErrorMetadata.t() | ParsingErrorMetadata.t() | RatelimitErrorMetadata.t() | nil
+          metadata: HttpErrorMetadata.t() | ParsingErrorMetadata.t() | RatelimitErrorMetadata.t() | nil
         }
 
   @spec new(:http_error, String.t(), HttpErrorMetadata.t()) :: t()
